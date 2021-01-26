@@ -120,11 +120,17 @@ export default {
         // รับค่าหน้าถัดไป เพื่อตรวจสอบ
         this.next_page = this.$route.params.next_page;
         //console.log("route : " + this.$route.params.next_page);
-        if (this.next_page == null || this.next_page == "") {
+        if (this.next_page == null || this.next_page == "") { 
           doc_watch = null
           //เก็บค่า doc_watch ไว้ใน state
           this.$store.commit("setWatch", doc_watch);
           this.$router.replace({ name: "List" });
+          this.$fire({
+            title: localStorage.getItem("current_lat"),
+            type: "success",
+            timer: 2000,
+          })
+          //alert(localStorage.getItem("current_lat") + "\n" + localStorage.getItem("current_long"))
         } else {
           this.$router.replace({ name: this.next_page });
         }
@@ -174,7 +180,7 @@ export default {
   },
   created() {
     console.log("User - home_page : "+localStorage.getItem("localUser"))
-    //this.getDeviceType();
+    this.getDeviceType();
   },
 };
 </script>

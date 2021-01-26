@@ -32,7 +32,7 @@ export const store = new Vuex.Store({
     //เก็บค่า firstname
     setFirstname(state, firstname) {
       localStorage.setItem("localUser", firstname);
-      state.firstname = firstname;
+      //state.firstname = firstname;
     },  
     //เก็บค่า firstname
     setShift(state, doc_shift) {

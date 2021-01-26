@@ -44,6 +44,7 @@ export default {
       //this.decodedContent = content;
       //รับค่ามาแล้ว split / เพื้อเอาแค่ค่านั้น
       var pathname = new URL(content).pathname.split("/")[1];
+      //alert("onDecode")
 
       await this.check_area();
 
@@ -84,16 +85,51 @@ export default {
           console.log("Successfully initilized! Ready for scanning now!");
         })
         .catch((error) => {
+          //กล้องถูก blocked ในการใช้งาน
           if (error.name === "NotAllowedError") {
-            this.errorMessage = "Hey! I need access to your camera";
+            this.$fire({
+              title: "Camera\u{1F4F7}</i>Blocked",
+              text:
+                "ไม่สามารถเข้าถึงกล้องได้เนื่องจากถูก Block\nกรุณาไปตั้งค่าที่ Setting > Privacy > Camera",
+              type: "error",
+            }).then((r) => {
+              if (
+                localStorage.getItem("localUser") == null ||
+                localStorage.getItem("localUser") == ""
+              ) {
+                localStorage.clear();
+                this.$router.replace({ name: "Home" });
+              } else {
+                this.$router.replace({ name: "List" });
+              }
+              console.log(r.value);
+            });
           } else if (error.name === "NotFoundError") {
             this.errorMessage = "Do you even have a camera on your device?";
           } else if (error.name === "NotSupportedError") {
             this.errorMessage =
               "Seems like this page is served in non-secure context (HTTPS, localhost or file://)";
+            //ไม่พบการใช้งานของกล้อง
           } else if (error.name === "NotReadableError") {
             this.errorMessage =
               "Couldn't access your camera. Is it already in use?";
+            this.$fire({
+              title: "Camera\u{1F4F7}Not Found",
+              text:
+                "ไม่สามารถเข้าถึงกล้องของคุณได้",
+              type: "error",
+            }).then((r) => {
+              if (
+                localStorage.getItem("localUser") == null ||
+                localStorage.getItem("localUser") == ""
+              ) {
+                localStorage.clear();
+                this.$router.replace({ name: "Home" });
+              } else {
+                this.$router.replace({ name: "List" });
+              }
+              console.log(r.value);
+            });
           } else if (error.name === "OverconstrainedError") {
             this.errorMessage =
               "Constraints don't match any installed camera. Did you asked for the front camera although there is none?";
@@ -104,24 +140,6 @@ export default {
     },
 
     locatorButtonPressed() {
-    /* Notification.requestPermission(function(result) {
-        if (result === 'denied') {
-          alert('Permission wasn\'t granted. Allow a retry.');
-          return;
-        } else if (result === 'default') {
-          alert('The permission request was dismissed.');
-          return;
-        }
-        alert('Permission was granted for notifications');
-      }); */
-
-    /* navigator.permissions.query({name:'geolocation'}).then(function(result) {
-    if (result.state == 'granted') {
-      alert(result.state);
-      //geoBtn.style.display = 'none';
-    } else if (result.state == 'prompt') {
-      alert(result.state);
-      //geoBtn.style.display = 'none';
       navigator.geolocation.getCurrentPosition(
         (position) => {
           this.lat = position.coords.latitude.toFixed(6);
@@ -137,30 +155,39 @@ export default {
         },
         (error) => {
           console.log(error.message);
-        });
-    } else if (result.state == 'denied') {
-      alert(result.state);
-      //geoBtn.style.display = 'inline';
-    }
-    result.onchange = function() {
-      alert(result.state);
-    }
-  }); */
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          this.lat = position.coords.latitude.toFixed(6);
-          this.long = position.coords.longitude.toFixed(6);
-
-          this.$store.commit("setLat", this.lat);
-          this.$store.commit("setLong", this.long);
-
-          const data_store = {
-            isTest: false,
-          };
-          this.$store.commit("setDoc", data_store);
-        },
-        (error) => {
-          console.log(error.message);
+          this.$confirm(
+            "ไม่อยู่ในพื้นที่ที่กำหนด หรือ\nQR code ไม่ถูกต้อง!",
+            "สแกนไม่สำเร็จ",
+            "error",
+            {
+              confirmButtonText: "สแกนใหม่",
+              cancelButtonText: "ไปหน้าหลัก",
+            }
+          )
+            .then((r) => {
+              console.log(r);
+              location.reload();
+            })
+            .catch(() => {
+              this.$router.replace({ name: "Home" });
+            });
+          this.$fire({
+            title: "Location Blocked",
+            text:
+              "ไม่สามารถเข้าถึงสถานที่ได้เนื่องจากถูก Block\nกรุณาไปตั้งค่าที่ Setting > Privacy > Location",
+            type: "error",
+          }).then((r) => {
+            if (
+              localStorage.getItem("localUser") == null ||
+              localStorage.getItem("localUser") == ""
+            ) {
+              localStorage.clear();
+              this.$router.replace({ name: "Home" });
+            } else {
+              this.$router.replace({ name: "List" });
+            }
+            console.log(r.value);
+          });
         }
       );
     },
@@ -215,7 +242,7 @@ export default {
     },
   },
   created() {
-    console.log("QR - "+localStorage.getItem("localUser"))
+    console.log("QR - " + localStorage.getItem("localUser"));
     //localStorage.clear();
     /* this.locatorButtonPressed();
     console.log(localStorage.getItem("current_lat").split("9")[0]);

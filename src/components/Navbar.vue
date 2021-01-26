@@ -2,11 +2,12 @@
   <div>
     <v-app-bar color="primary accent-4" dense dark>
       <!-- <v-app-bar-nav-icon></v-app-bar-nav-icon> -->
+      {{Test}}
       <v-app-bar-nav-icon
         small
         dense
         color="teal accent-2"
-        to="/List"
+        :to="Test"
         v-show="back_button"
       >
         <v-icon>mdi-arrow-left</v-icon></v-app-bar-nav-icon
@@ -124,6 +125,9 @@ export default {
       //current_page: false,
       shift: ["A", "B", "C"],
       doc_shift: localStorage.getItem("docShift"),
+      to_home: "/",
+      to_list: "/List",
+      Test: '',
       /* menu_button: true,
       back_button: true,
       qr_button: true,
@@ -180,6 +184,21 @@ export default {
       this.doc_date = day + "/" + month + "/" + year;
     },
   },
+  watch: {
+    /* Test() {
+      if (
+        localStorage.getItem("localUser") == null ||
+        localStorage.getItem("localUser") == ""
+      ) {
+        this.Test = this.to_home
+      } else {
+        this.Test = this.to_list
+      }
+    }, */
+    /* firstname() {
+      this.firstname = localStorage.getItem("localUser")
+    }, */
+  },
   computed: {
     check_page() {
       return this.$route.name;
@@ -208,6 +227,14 @@ export default {
     },
     back_button() {
       if (this.check_page == "Home" || this.check_page == "List") {
+        if(this.check_page == "Home") {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.Test = this.to_home
+        } else {
+          // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+          this.Test = this.to_list
+        }
+        //return this.Test;
         return false;
       } else {
         return true;
@@ -224,14 +251,17 @@ export default {
         return true;
       }
     },
-    firstname() {
+    /* firstname() {
       return localStorage.getItem("localUser")
-    },
+    }, */
     isLogin() {
       if (this.check_page == "Home" || this.check_page == "QR") {
         return false;
       } else {
-        return true;
+        // eslint-disable-next-line vue/no-side-effects-in-computed-properties
+        this.firstname = localStorage.getItem("localUser");
+        return this.firstname
+        //return true
       }
     },
     qr_text() {
@@ -254,7 +284,7 @@ export default {
         this.check_page == "Photocell" ||
         this.check_page == "Machine" ||
         this.check_page == "Machine_temp" ||
-        this.check_page == "Machine_rolling"||
+        this.check_page == "Machine_rolling" ||
         this.check_page == "List" ||
         this.check_page == "Home" ||
         this.check_page == "QR"
@@ -272,16 +302,20 @@ export default {
         return true;
       }
     },
-    Test(){
-      if(localStorage.getItem("localUser") == null ||
-      localStorage.getItem("localUser") == ''){
-        console.log(null)
-        return "/"
+    /* Test() {
+      if (
+        localStorage.getItem("localUser") == null ||
+        localStorage.getItem("localUser") == ""
+      ) {
+        console.log(localStorage.getItem("localUser"))
+        console.log("Home");
+        return this.to_home;
       } else {
-        console.log("not null")
-        return "/List"
+        console.log(localStorage.getItem("localUser"))
+        console.log("List");
+        return this.to_list;
       }
-    },
+    }, */
     sendShift(doc_shift) {
       if (
         localStorage.getItem("docShift") != null ||
