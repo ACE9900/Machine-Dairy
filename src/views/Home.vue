@@ -3,8 +3,8 @@
     :ref="'loginForm'"
     v-on:submit.prevent="checkValidate() && login($event)"
   >
-    <span class="bg"></span>
-    <div class="pa-16 grey darken-3 white--text" height="489">
+    <!-- <span class="bg"></span> -->
+    <div class="pa-16 grey darken-3 white--text" height="100">
       <v-img
         alt="Vue logo"
         src="../assets/ZUBB-LOGO-2020.jpg"
@@ -80,6 +80,7 @@ export default {
       password: "",
       //firstname: "",
       next_page: "",
+      motor_name: "",
       id: "",
       showPassword: false,
       rules: {
@@ -114,30 +115,17 @@ export default {
         this.password == this.data_login.password
       ) {
         firstname = this.data_login.firstname;
-        await this.setName(firstname)
         //เก็บค่า firstname ไว้ใน state
-        console.log(localStorage.getItem("localUser"))
+        await this.setName(firstname);
+        //console.log(localStorage.getItem("localUser"));
         // รับค่าหน้าถัดไป เพื่อตรวจสอบ
         this.next_page = this.$route.params.next_page;
-        //console.log("route : " + this.$route.params.next_page);
-        if (this.next_page == null || this.next_page == "") { 
-          doc_watch = null
-          //เก็บค่า doc_watch ไว้ใน state
-          this.$store.commit("setWatch", doc_watch);
-          this.$router.replace({ name: "List" });
-          this.$fire({
-            title: localStorage.getItem("current_lat"),
-            type: "success",
-            timer: 2000,
-          })
-          //alert(localStorage.getItem("current_lat") + "\n" + localStorage.getItem("current_long"))
-        } else {
-          this.$router.replace({ name: this.next_page });
-        }
+        //ตรวจสอบขอบเขตพื้นที่
+        this.check_area(doc_watch);
       }
     },
     async setName(firstname) {
-      await this.$store.commit("setFirstname", firstname);
+      this.$store.commit("setFirstname", firstname);
     },
     //ส่ง username และ password ไปเพื่อรับข้อมูลกลับมา
     postUser() {
@@ -157,6 +145,93 @@ export default {
         console.log("กรุณากรอกข้อมูล !");
       }
     },
+    //รับค่า Location
+    async locatorButtonPressed() {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          this.lat = position.coords.latitude.toFixed(6);
+          this.long = position.coords.longitude.toFixed(6);
+
+          this.$store.commit("setLat", this.lat);
+          this.$store.commit("setLong", this.long);
+
+          const data_store = {
+            isTest: false,
+          };
+          this.$store.commit("setDoc", data_store);
+        },
+        (error) => {
+          console.log(error.message);
+          this.$fire({
+            title: "Location Blocked",
+            text:
+              "ไม่สามารถเข้าถึงสถานที่ได้เนื่องจากถูก Block\nกรุณาไปตั้งค่าที่ Setting > Privacy > Location",
+            type: "error",
+          }).then((r) => {
+            localStorage.clear();
+            location.reload();
+            console.log(r.value);
+          });
+        }
+      );
+    },
+    //รับค่าตำแหน่งจาก database
+    get_location() {
+      //แสดงข้อมูลตาม id ที่ได้จากการเลือก list
+      return axios
+        .get(this.url + "/location_id/" + 1)
+        .then(
+          (response) => (
+            (this.location_data = response.data[0]),
+            console.log(this.location_data)
+          )
+        );
+    },
+    //scan location ไม่ถูกต้อง
+    scan_False() {
+      this.$confirm(
+        "ไม่อยู่ในพื้นที่ที่กำหนด หรือ\nQR code ไม่ถูกต้อง!",
+        "สแกนไม่สำเร็จ",
+        "error",
+        {
+          confirmButtonText: "สแกนใหม่",
+          cancelButtonText: "ไปหน้าหลัก",
+        }
+      )
+        .then((r) => {
+          console.log(r);
+          this.$router.replace({ name: "QR" });
+        })
+        .catch(() => {
+          location.reload();
+        });
+    },
+    //ขอบเขตพื้นที่
+    async check_area(doc_watch) {
+      await this.locatorButtonPressed();
+      await this.get_location();
+      if (
+        this.lat >= this.location_data.lat_min &&
+        this.lat <= this.location_data.lat_max &&
+        this.long >= this.location_data.long_min &&
+        this.long <= this.location_data.long_max
+      ) {
+        //ตรวจสอบสถานะการดู
+        if (this.next_page == null || this.next_page == "") {
+          doc_watch = null;
+          //เก็บค่า doc_watch ไว้ใน state
+          this.$store.commit("setWatch", doc_watch);
+          this.$router.replace({ name: "List" });
+        } else {
+          this.$router.replace({ name: this.next_page ,motor_name: this.motor_name });
+        }
+      } else {  
+        this.scan_False();
+        this.$store.commit("setLat", null);
+        this.$store.commit("setLong", null);
+      }
+    },
+    //ตรวจสอบอุปกรณ์ในการเข้าใช้งาน
     getDeviceType(device) {
       const ua = navigator.userAgent;
       if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
@@ -179,20 +254,12 @@ export default {
     },
   },
   created() {
-    console.log("User - home_page : "+localStorage.getItem("localUser"))
+    console.log("User - home_page : " + localStorage.getItem("localUser"));
     this.getDeviceType();
   },
 };
 </script>
 
 <style scoped>
-.bg {
-  width: 96%;
-  height: 85%;
-  position: absolute;
-  top: 11%;
-  bottom: 50%;
-  background-color: #424242;
-  transform: scale(1.1);
-}
+
 </style>

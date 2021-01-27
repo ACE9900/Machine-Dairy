@@ -2,7 +2,7 @@
   <div id="app">
     <!-- <v-card color="red">
       <v-card-text>
-        <div v-if="decodedContent !== null" class="decoded-content">
+        <div >
           ผลรับที่ได้ : {{ decodedContent }}
         </div>
       </v-card-text>
@@ -26,7 +26,7 @@ export default {
     return {
       paused: false,
       url: "https://hook.zubbsteel.com/line-ci/machine",
-      //decodedContent: null,
+      //decodedContent: '',
       errorMessage: "",
       lat: "",
       long: "",
@@ -39,26 +39,37 @@ export default {
     },
   },
   methods: {
+    //ตรวจสอบการแสกน QR Code
     async onDecode(content) {
-      //รับค่าจากการแสกน QR Code
-      //this.decodedContent = content;
       //รับค่ามาแล้ว split / เพื้อเอาแค่ค่านั้น
-      var pathname = new URL(content).pathname.split("/")[1];
-      //alert("onDecode")
+      var pathname_test = new URL(content).pathname.split("/")[1]; //Machine_area1_JC31F01VEF-M001
+      //motorname หลังจาก split
+      var motorname = new URL(content).pathname.split("/Machine_area1_")[1]; //JC31F01VEF-M001
+      //pathname หลังจาก substr
+      var pathname = new URL(content).pathname.substr(1, 13); //Machine_area1
 
+      //รับค่าจากการแสกน QR Code
+      //this.decodedContent = pathname_test;
+      console.log(pathname)
+      console.log(motorname)
+      console.log(pathname_test)
+      //this.$router.replace({ name: testvalue });
+
+      //เรียกใช้ check_area
       await this.check_area();
 
       if (this.check == false) {
-        //alert("1 : " + this.check);
+        alert("check = false")
         this.scan_False();
       } else if (
         pathname == "Machine" ||
         pathname == "Machine_temp" ||
         pathname == "Photocell" ||
-        pathname == "Machine_rolling"
+        pathname == "Machine_rolling" ||
+        pathname == "Machine_area1"
       ) {
         if (localStorage.getItem("localUser") != null) {
-          this.$router.replace({ name: pathname });
+          this.$router.replace({ name: pathname ,params: { motor_name: motorname }});
         } else {
           this.$fire({
             title: "สแกนสำเร็จ",
@@ -68,17 +79,17 @@ export default {
             console.log(r.value);
             this.$router.replace({
               name: "Home",
-              params: { next_page: pathname },
+              params: { next_page: pathname ,motor_name: motorname},
             });
           });
         }
       } else {
-        //alert("2 : " + pathname);
         this.scan_False();
       }
     },
-
+    //ตรวจสอบการใช้งานของกล้อง
     onInit(promise) {
+      //เรียกใช้ locatorButtonPressed
       this.locatorButtonPressed();
       promise
         .then(() => {
@@ -138,7 +149,7 @@ export default {
           }
         });
     },
-
+    //รับค่า Location
     locatorButtonPressed() {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -155,22 +166,6 @@ export default {
         },
         (error) => {
           console.log(error.message);
-          this.$confirm(
-            "ไม่อยู่ในพื้นที่ที่กำหนด หรือ\nQR code ไม่ถูกต้อง!",
-            "สแกนไม่สำเร็จ",
-            "error",
-            {
-              confirmButtonText: "สแกนใหม่",
-              cancelButtonText: "ไปหน้าหลัก",
-            }
-          )
-            .then((r) => {
-              console.log(r);
-              location.reload();
-            })
-            .catch(() => {
-              this.$router.replace({ name: "Home" });
-            });
           this.$fire({
             title: "Location Blocked",
             text:
@@ -191,6 +186,7 @@ export default {
         }
       );
     },
+    //รับค่าตำแหน่งจาก database
     get_location() {
       //แสดงข้อมูลตาม id ที่ได้จากการเลือก list
       return axios
@@ -202,6 +198,7 @@ export default {
           )
         );
     },
+    //scan location ไม่ถูกต้อง
     scan_False() {
       this.$confirm(
         "ไม่อยู่ในพื้นที่ที่กำหนด หรือ\nQR code ไม่ถูกต้อง!",
@@ -242,7 +239,7 @@ export default {
     },
   },
   created() {
-    console.log("QR - " + localStorage.getItem("localUser"));
+    //console.log("QR - " + localStorage.getItem("localUser"));
     //localStorage.clear();
     /* this.locatorButtonPressed();
     console.log(localStorage.getItem("current_lat").split("9")[0]);

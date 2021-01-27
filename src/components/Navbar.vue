@@ -211,7 +211,8 @@ export default {
         this.check_page == "Machine_rolling" ||
         this.check_page == "List" ||
         this.check_page == "Home" ||
-        this.check_page == "QR"
+        this.check_page == "QR" ||
+        this.check_page == "Machine_area1"
       ) {
         return false;
       } else {
@@ -244,7 +245,8 @@ export default {
       if (
         this.check_page == "Home" ||
         this.check_page == "List" ||
-        this.check_page == "QR"
+        this.check_page == "QR" ||
+        this.check_page == "Machine_area1"
       ) {
         return false;
       } else {
@@ -271,7 +273,8 @@ export default {
         this.check_page == "Machine_temp" ||
         this.check_page == "Machine_rolling" ||
         this.check_page == "List" ||
-        this.check_page == "Home"
+        this.check_page == "Home" ||
+        this.check_page == "Machine_area1"
       ) {
         return false;
       } else {
@@ -287,13 +290,15 @@ export default {
         this.check_page == "Machine_rolling" ||
         this.check_page == "List" ||
         this.check_page == "Home" ||
-        this.check_page == "QR"
+        this.check_page == "QR" ||
+        this.check_page == "Machine_area1"
       ) {
         if (
           localStorage.getItem("watch_doc") == null ||
           localStorage.getItem("watch_doc") == ""
         ) {
-          return true;
+          //return true;
+          return false;
         } else {
           return false;
         }

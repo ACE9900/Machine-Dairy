@@ -11,6 +11,7 @@ import test_1 from "../views/test_1.vue";
 import test_2 from "../views/test_2.vue";
 import list from "../views/List.vue"
 import table_search from "../views/Table_search.vue";
+import Machine_area1 from "../views/Machine_Area1.vue";
 
 Vue.use(VueRouter);
 
@@ -70,8 +71,13 @@ const routes = [
     name: "Table_search",
     component: table_search,
   },
+  {
+    path: "/Machine_area1",
+    name: "Machine_area1",
+    component: Machine_area1,
+  },
 ];
-
+ 
 const router = new VueRouter({
   mode: "history",
   base: process.env.BASE_URL,
